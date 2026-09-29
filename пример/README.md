@@ -13,6 +13,13 @@ decision* is, in `сценарий/`:
   toward cheap 3D-style rendering.
 - **`озвучка.md`** — 5 voiceover lines, one per shot, timed to the sheet.
 
+No clips yet? Fill the project with test clips (colour bars) and tones instead
+of music and voice, then build it — the whole pipeline in a minute:
+
+```powershell
+python пример\заглушки.py "пример\Проект — мини-сказка"
+```
+
 To make it yours: drop your own clips into `видео/`, matching filenames in the
 sheet, and run:
 

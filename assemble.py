@@ -1,4 +1,4 @@
-"""Сборка вертикального ролика по монтажному листу (Шаблон 4 модуля 7).
+"""Сборка ролика по монтажному листу.
 
 Читает монтаж.md, нормализует фрагменты, склеивает, кладёт музыку и текст на экран.
 Зависимости: только ffmpeg в PATH и стандартная библиотека Python.
@@ -46,6 +46,8 @@ FORMAT_ALIASES = {
     "16:9": "горизонталь", "горизонтальный": "горизонталь", "horizontal": "горизонталь",
     "1:1": "квадрат", "square": "квадрат",
 }
+# README на английском: те же строки листа можно писать по-английски
+TRACK_LABELS_EN = {"Музыка": "Music", "Озвучка": "Voiceover"}
 AUDIO_FADE = 1.5  # секунд затухания музыки в конце
 MUSIC_UNDER_VOICE = 0.25  # во сколько раз тише музыка, когда поверх идёт озвучка
 
@@ -98,7 +100,7 @@ def _parse_timing(cell: str) -> tuple[float | None, float]:
     а в монтаж идут лучшие 3–4, и они редко в самом начале.
     """
     cell = _clean(cell).replace(",", ".")
-    start_match = re.search(r"с\s+(\d+(?:\.\d+)?)", cell)
+    start_match = re.search(r"(?:с|from)\s+(\d+(?:\.\d+)?)", cell)
     start = float(start_match.group(1)) if start_match else 0.0
     head = cell[: start_match.start()] if start_match else cell
     match = re.search(r"\d+(?:\.\d+)?", head)
@@ -107,7 +109,7 @@ def _parse_timing(cell: str) -> tuple[float | None, float]:
 
 def _parse_format(text: str) -> tuple[str, int, int]:
     """Строка вида: - **Формат:** горизонталь. Без неё — вертикаль, как раньше."""
-    match = re.search(r"\*\*Формат:\*\*(.+)", text)
+    match = re.search(r"\*\*(?:Формат|Format):\*\*(.+)", text)
     if not match:
         return "вертикаль", *FORMATS["вертикаль"]
     value = _clean(match.group(1)).lower().strip(" .")
@@ -123,7 +125,7 @@ def _parse_format(text: str) -> tuple[str, int, int]:
 
 def _parse_track(text: str, project: Path, label: str) -> tuple[Path | None, float]:
     """Строка вида: - **Музыка:** track.mp3, с 12 сек"""
-    match = re.search(rf"\*\*{label}:\*\*(.+)", text)
+    match = re.search(rf"\*\*(?:{label}|{TRACK_LABELS_EN[label]}):\*\*(.+)", text)
     if not match:
         return None, 0.0
     value = _clean(match.group(1))
@@ -131,11 +133,11 @@ def _parse_track(text: str, project: Path, label: str) -> tuple[Path | None, flo
         return None, 0.0
 
     start = 0.0
-    start_match = re.search(r"с\s+(\d+(?:[.,]\d+)?)\s*сек", value)
+    start_match = re.search(r"(?:с|from)\s+(\d+(?:[.,]\d+)?)\s*(?:сек|s\b)", value)
     if start_match:
         start = float(start_match.group(1).replace(",", "."))
 
-    name = re.split(r",|\s+с\s+\d", value)[0].strip()
+    name = re.split(r",|\s+(?:с|from)\s+\d", value)[0].strip()
     if not name:
         return None, 0.0
 
@@ -170,7 +172,7 @@ def parse_montage(path: Path, project: Path) -> Montage:
             continue
         cells = [c.strip() for c in stripped.strip("|").split("|")]
         if not header_seen:
-            if any("файл" in c.lower() for c in cells):
+            if any("файл" in c.lower() or "file" in c.lower() for c in cells):
                 header_seen = True
             continue
         if all(set(c) <= set("-: ") for c in cells):
@@ -180,7 +182,7 @@ def parse_montage(path: Path, project: Path) -> Montage:
     if not header_seen:
         raise MontageError(
             "В монтажном листе нет таблицы с колонкой «Файл». "
-            "Возьми таблицу из шаблона 4."
+            "Возьми таблицу из README или из примера."
         )
 
     montage = Montage()
@@ -413,7 +415,7 @@ def assemble(project: Path, output: Path | None, dry_run: bool) -> int:
         raise MontageError(
             "Не нашла монтажный лист. Искала тут:\n  "
             + "\n  ".join(str(c) for c in candidates)
-            + "\nПоложи файл «монтаж.md» с таблицей из шаблона 4."
+            + "\nПоложи файл «монтаж.md» с таблицей из README или из примера."
         )
 
     montage = parse_montage(sheet, project)
