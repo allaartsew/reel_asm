@@ -1,0 +1,30 @@
+# Media — AI generations, audio, renders are not part of the repo
+*.mp4
+*.mp3
+*.wav
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
+# Archives
+*.zip
+*.rar
+*.7z
+
+# Project asset folders (source clips, music, renders)
+финал/
+видео/
+музыка/
+озвучка/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor
+.vscode/
+.idea/
