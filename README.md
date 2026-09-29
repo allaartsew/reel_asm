@@ -150,6 +150,7 @@ that makes that footage publishable.
 ```
 
 > 🎬 **Watch 35s Showcase Video** — see the real assembly process combining fairytale AI clips with HyperFrames motion graphics, `N from M` window cutting, and music sync.
+
 https://github.com/user-attachments/assets/e0a01435-3f41-4614-91e3-86c78263b422
 
 ## Why
